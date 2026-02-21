@@ -1,0 +1,100 @@
+1. Получение полной информации о билете (3 команды JOIN) Цель: Вывести имя пассажира, откуда и куда он летит, и название авиакомпании. Требование: JOIN, Сложный запрос.
+
+
+SELECT
+    t.passenger_name,
+    dep.city AS departure_city,
+    arr.city AS arrival_city,
+    a.name AS airline_name,
+    f.status
+FROM tickets t
+JOIN flights f ON t.flight_id = f.flight_id
+JOIN airports dep ON f.departure_airport_id = dep.airport_id
+JOIN airports arr ON f.arrival_airport_id = arr.airport_id
+JOIN planes p ON f.plane_id = p.plane_id
+JOIN airlines a ON p.airline_id = a.airline_id;
+2. Поиск международных рейсов (WHERE по связанным таблицам) Цель: Найти рейсы, где страна вылета не совпадает со страной прилета. Требование: JOIN, WHERE.
+
+
+
+SELECT
+    f.flight_number,
+    dep.country AS from_country,
+    arr.country AS to_country
+FROM flights f
+JOIN airports dep ON f.departure_airport_id = dep.airport_id
+JOIN airports arr ON f.arrival_airport_id = arr.airport_id
+WHERE dep.country != arr.country;
+Блок 2: Аналитика и Агрегация (GROUP BY + HAVING)
+3. Подсчет потенциальной выручки каждой авиакомпании (Агрегация SUM) Цель: Посчитать, на какую сумму запланировано рейсов у каждой компании. Требование: JOIN, Агрегатная функция (SUM), GROUP BY.
+
+
+SELECT
+    a.name,
+    SUM(f.price) as total_revenue_potential
+FROM airlines a
+JOIN planes p ON a.airline_id = p.airline_id
+JOIN flights f ON p.plane_id = f.plane_id
+GROUP BY a.name
+ORDER BY total_revenue_potential DESC;
+4. Средняя стоимость билета из каждого города (Агрегация AVG) Цель: Узнать, из какого города летать дороже всего в среднем. Требование: Агрегатная функция (AVG), GROUP BY.
+
+
+SELECT
+    ap.city,
+    ROUND(AVG(f.price), 2) as avg_flight_price
+FROM flights f
+JOIN airports ap ON f.departure_airport_id = ap.airport_id
+GROUP BY ap.city;
+5. Авиакомпании с крупным флотом (HAVING) Цель: Показать только те авиакомпании, у которых больше 1 самолета. Требование: GROUP BY, HAVING.
+
+
+SELECT
+    a.name,
+    COUNT(p.plane_id) as fleet_size
+FROM airlines a
+JOIN planes p ON a.airline_id = p.airline_id
+GROUP BY a.name
+HAVING COUNT(p.plane_id) > 1;
+6. Поиск "простаивающих" самолетов (LEFT JOIN + IS NULL) Цель: Найти модели самолетов, которые есть в базе, но на них не назначено ни одного рейса. Требование: LEFT JOIN, WHERE IS NULL.
+
+
+SELECT
+    p.model,
+    p.capacity
+FROM planes p
+LEFT JOIN flights f ON p.plane_id = f.plane_id
+WHERE f.flight_id IS NULL;
+7. Пассажиры "бюджетных" рейсов (Подзапрос) Цель: Найти пассажиров, купивших билеты на рейсы, цена которых ниже средней по всем рейсам. Требование: WHERE с вложенным SELECT (Subquery).
+
+
+SELECT
+    t.passenger_name,
+    f.price
+FROM tickets t
+JOIN flights f ON t.flight_id = f.flight_id
+WHERE f.price < (SELECT AVG(price) FROM flights);
+Блок 4: Модификация данных и Прочее
+8. Массовое повышение цен (UPDATE с условием) Цель: Поднять цену на 10% для всех рейсов со статусом 'Scheduled'. Требование: UPDATE, WHERE.
+
+
+UPDATE flights
+SET price = price * 1.10
+WHERE status = 'Scheduled';
+9. Чистка устаревших данных (DELETE с подзапросом) Цель: Удалить билеты на отмененные рейсы (если бы не было каскадного удаления, это было бы критично, но запрос демонстрирует логику). Требование: DELETE, WHERE IN.
+
+
+
+DELETE FROM tickets
+WHERE flight_id IN (
+    SELECT flight_id FROM flights WHERE status = 'Cancelled'
+);
+10. Рейтинг рейсов по цене внутри статуса (Window Function - "Высший пилотаж") Цель: Пронумеровать рейсы от самого дорогого к дешевому отдельно для каждой группы статусов (Arrived, Scheduled и т.д.). Требование: Сложный запрос, Window Function (OVER, PARTITION BY).
+
+
+SELECT
+    flight_number,
+    status,
+    price,
+    RANK() OVER (PARTITION BY status ORDER BY price DESC) as rank_in_status
+FROM flights;
