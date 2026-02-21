@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17
+CXXFLAGS = -std=c++17 -O2
 LDFLAGS = -lpqxx -lpq
 TARGET = flight_app
 SOURCES = main.cpp operations.cpp
@@ -16,9 +16,10 @@ clean:
 run: $(TARGET)
 	./$(TARGET)
 
-# Для быстрой настройки БД
-db-init:
-	psql -U postgres -d aviation_db -f create_tables.sql
-	psql -U postgres -d aviation_db -f insert_data.sql
+fix-bd:
+	sudo -u postgres psql -c "ALTER USER postgres PASSWORD '12345';"
+	sudo -u postgres psql -c "CREATE DATABASE aviation_db;"
+	PGPASSWORD=12345 psql -h localhost -U postgres -d aviation_db -f create_tables.sql
+	PGPASSWORD=12345 psql -h localhost -U postgres -d aviation_db -f insert_data.sql
 
 .PHONY: all clean run db-init

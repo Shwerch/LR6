@@ -3,9 +3,7 @@
 // Основная функция программы
 int main() {
     try {
-        // Подключение к PostgreSQL. Измените параметры под вашу систему!
-        string connStr = "host=localhost port=5432 dbname=aviation_db user=postgres password=postgres";
-        pqxx::connection conn(connStr);
+        pqxx::connection conn("dbname=aviation_db user=postgres password=12345 host=127.0.0.1 port=5432");
 
         if (!conn.is_open()) {
             cout << "Критическая ошибка: Нет подключения к БД!" << endl;
