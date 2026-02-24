@@ -1,6 +1,5 @@
 #include "operations.h"
 
-// Основная функция программы
 int main() {
     try {
         pqxx::connection conn("dbname=aviation_db user=postgres password=12345 host=127.0.0.1 port=5432");

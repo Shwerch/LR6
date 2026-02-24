@@ -1,6 +1,5 @@
 #include "operations.h"
 
-// Функция выводит текстовое меню в консоль
 void showMenu() {
     cout << endl << string(40, '=') << endl;
     cout << "=== СИСТЕМА УПРАВЛЕНИЯ АВИАРЕЙСАМИ ===" << endl;
@@ -34,7 +33,7 @@ void showMenu() {
 // Показывает список всех рейсов с деталями через JOIN
 void viewAllFlights(pqxx::work& txn) {
     cout << "\n--- Табло рейсов ---" << endl;
-    pqxx::result res = txn.exec( //выполням запрос через транзакции
+    pqxx::result res = txn.exec(
         "SELECT f.flight_number, f.departure_time, f.status, f.price, "
         "dep.city as from_city, arr.city as to_city, a.name as airline "
         "FROM flights f "
@@ -76,13 +75,13 @@ void viewAllPlanes(pqxx::work& txn) {
     }
 }
 
-// Поиск рейсов по названию города (вылет или прилет)
+// Поиск рейсов по названию города
 void searchFlightsByCity(pqxx::work& txn) {
     string cityName;
     cout << "Введите город (или часть названия): ";
     getline(cin, cityName);
 
-    // Параметризованный запрос для безопасности (ILIKE для регистронезависимости)
+    // Параметризованный запрос для безопасности
     pqxx::result res = txn.exec_params(
         "SELECT f.flight_number, dep.city as from_c, arr.city as to_c "
         "FROM flights f "
@@ -121,7 +120,7 @@ void searchPlanesByAirline(pqxx::work& txn) {
     }
 }
 
-// Добавление нового пассажира (покупка билета)
+// Добавление нового пассажира
 void registerNewPassenger(pqxx::work& txn) {
     string flightNum, name, passport, seat;
     
@@ -172,7 +171,6 @@ void updateFlightStatus(pqxx::work& txn) {
     else cout << "Рейс не найден." << endl;
 }
 
-// Удаление рейса
 void cancelFlight(pqxx::work& txn) {
     string flightNum;
     cout << "Введите номер рейса для отмены (удаления): ";
@@ -204,7 +202,7 @@ void showAirportsStats(pqxx::work& txn) {
     }
 }
 
-// Аналитика: Самый дорогой рейс (подзапрос)
+// Аналитика: Самый дорогой рейс
 void showMostExpensiveFlight(pqxx::work& txn) {
     cout << "\n--- Самый дорогой перелет ---" << endl;
     pqxx::result res = txn.exec(
@@ -233,7 +231,6 @@ void showAirlinesFleet(pqxx::work& txn) {
     }
 }
 
-// Общая статистика (Агрегатные функции)
 void showGeneralStats(pqxx::work& txn) {
     cout << "\n--- Общая статистика ---" << endl;
     pqxx::result res = txn.exec(
@@ -248,13 +245,13 @@ void showGeneralStats(pqxx::work& txn) {
     cout << "Продано билетов: " << res[0]["total_passengers"].as<int>() << endl;
 }
 
-// ДЕМО: Уязвимый поиск (SQL Injection)
+// Уязвимый поиск (SQL Injection)
 void demoVulnerableSearch(pqxx::work& txn) {
     string namePart;
     cout << "Введите имя пассажира: ";
     getline(cin, namePart);
 
-    // ОПАСНО: Прямая конкатенация строки!
+    // Прямая конкатенация строки!
     string query = "SELECT * FROM tickets WHERE passenger_name LIKE '%" + namePart + "%'";
     cout << "Выполняемый SQL: " << query << endl;
 
@@ -270,13 +267,13 @@ void demoVulnerableSearch(pqxx::work& txn) {
     cout << "Подсказка для взлома: введите ' OR '1'='1" << endl;
 }
 
-// ДЕМО: UNION Injection
+// UNION Injection
 void demoUnionInjection(pqxx::work& txn) {
     string idStr;
     cout << "Введите ID билета: ";
     getline(cin, idStr);
 
-    // ОПАСНО: Отсутствие проверки типов и конкатенация
+    // Отсутствие проверки типов и конкатенация
     string query = "SELECT passenger_name, seat_number FROM tickets WHERE ticket_id = " + idStr;
     cout << "Выполняемый SQL: " << query << endl;
     
@@ -291,7 +288,7 @@ void demoUnionInjection(pqxx::work& txn) {
     cout << "Подсказка: 1 UNION SELECT name, base_country FROM airlines" << endl;
 }
 
-// ДЕМО: Уязвимое удаление
+// Уязвимое удаление
 void demoVulnerableDelete(pqxx::work& txn) {
     string passNum;
     cout << "Введите номер паспорта для удаления билетов: ";

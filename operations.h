@@ -7,13 +7,7 @@
 
 using namespace std;
 
-// Структура для хранения конфигурации подключения (если понадобится расширение)
-struct DbConfig {
-    string connectionString;
-};
-
 void showMenu();
-
 
 void viewAllFlights(pqxx::work& txn);
 void viewAllAirports(pqxx::work& txn);
